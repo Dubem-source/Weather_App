@@ -1,0 +1,256 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Skyline Weather</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@500;700;800&family=Space+Mono:wght@400;700&display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: {
+              display: ["Bricolage Grotesque", "sans-serif"],
+              mono: ["Space Mono", "monospace"],
+            },
+            keyframes: {
+              drift: {
+                "0%, 100%": { transform: "translateY(0px) translateX(0px)" },
+                "50%": { transform: "translateY(-18px) translateX(10px)" },
+              },
+              reveal: {
+                from: { opacity: "0", transform: "translateY(14px)" },
+                to: { opacity: "1", transform: "translateY(0)" },
+              },
+            },
+            animation: {
+              drift: "drift 8s ease-in-out infinite",
+              reveal: "reveal 600ms ease-out both",
+            },
+          },
+        },
+      };
+    </script>
+    <style>
+      :root {
+        --ink: #f8fafc;
+      }
+
+      body {
+        font-family: "Bricolage Grotesque", sans-serif;
+      }
+
+      .noise {
+        background-image: radial-gradient(
+          circle at 1px 1px,
+          rgba(255, 255, 255, 0.12) 1px,
+          transparent 0
+        );
+        background-size: 24px 24px;
+      }
+    </style>
+  </head>
+  <body
+    class="relative min-h-screen overflow-x-hidden bg-slate-950 text-[var(--ink)]"
+  >
+    <div class="pointer-events-none absolute inset-0">
+      <div
+        class="absolute -left-20 top-12 h-72 w-72 rounded-full bg-cyan-400/30 blur-3xl animate-drift"
+      ></div>
+      <div
+        class="absolute right-0 top-40 h-80 w-80 rounded-full bg-blue-500/40 blur-3xl animate-drift"
+        style="animation-delay: 1.2s"
+      ></div>
+      <div
+        class="absolute bottom-0 left-1/4 h-64 w-64 rounded-full bg-emerald-400/25 blur-3xl animate-drift"
+        style="animation-delay: 2.1s"
+      ></div>
+      <div class="noise absolute inset-0 opacity-20"></div>
+    </div>
+
+    <main class="relative mx-auto max-w-4xl p-4 pb-10 pt-8 md:p-8 md:pt-14">
+      <section
+        class="animate-reveal rounded-3xl border border-white/20 bg-slate-900/65 p-5 shadow-[0_18px_60px_rgba(0,0,0,0.45)] backdrop-blur-2xl md:p-8"
+      >
+        <div class="mb-6 flex flex-wrap items-end justify-between gap-4">
+          <div>
+            <p
+              class="font-mono text-xs uppercase tracking-[0.2em] text-cyan-200/90"
+            >
+              Live Conditions
+            </p>
+            <h1
+              class="font-display text-4xl font-extrabold leading-tight text-white md:text-5xl"
+            >
+              Dubem Weather Forecast
+            </h1>
+          </div>
+          <p class="max-w-xs text-sm text-slate-200/90">
+            Beautiful real-time weather for any city, powered by
+            OpenWeatherMap's API.
+          </p>
+        </div>
+
+        <form method="post" class="grid gap-3 md:grid-cols-[1fr_auto]">
+          {% csrf_token %}
+          <label for="city" class="sr-only">City</label>
+          <input
+            id="city"
+            name="city"
+            type="text"
+            value="{{ city|default:'' }}"
+            placeholder="Try Lagos, Tokyo, Nairobi, London"
+            class="w-full rounded-2xl border border-white/20 bg-slate-800/80 px-4 py-3 text-base text-white placeholder:text-slate-300/80 outline-none transition focus:border-cyan-300 focus:ring-2 focus:ring-cyan-300/40"
+            required
+          />
+          <button
+            id="searchBtn"
+            type="submit"
+            class="w-full rounded-2xl bg-cyan-300 px-6 py-3 font-display text-sm font-bold uppercase tracking-[0.15em] text-slate-900 transition hover:bg-cyan-200 md:w-auto"
+          >
+            Check Sky
+          </button>
+        </form>
+
+        {% if error %}
+        <p
+          class="mt-4 rounded-2xl border border-rose-300/30 bg-rose-500/20 px-4 py-3 text-sm text-rose-100"
+        >
+          {{ error }}
+        </p>
+        {% endif %} {% if weather %}
+        <section class="mt-6 animate-reveal">
+          <div
+            class="rounded-3xl border border-white/20 bg-slate-900/50 p-5 md:p-7"
+          >
+            <div class="flex flex-wrap items-start justify-between gap-4">
+              <div>
+                <h2
+                  class="font-display text-3xl font-bold leading-tight md:text-4xl"
+                >
+                  {{ weather.location }}
+                </h2>
+                <p class="mt-1 capitalize text-slate-200">
+                  {{ weather.description }}
+                </p>
+                <p
+                  class="mt-4 font-mono text-xs uppercase tracking-[0.18em] text-cyan-200/90"
+                >
+                  Current Temperature
+                </p>
+                <p
+                  class="font-display text-5xl font-extrabold leading-none text-white md:text-7xl"
+                >
+                  {{ weather.temperature }}&deg;C
+                </p>
+              </div>
+
+              <div
+                class="rounded-2xl border border-white/20 bg-slate-800/60 p-3"
+              >
+                <img
+                  src="https://openweathermap.org/img/wn/{{ weather.icon }}@2x.png"
+                  alt="Weather icon"
+                  class="h-20 w-20 md:h-24 md:w-24"
+                />
+              </div>
+            </div>
+
+            <div class="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+              <article
+                class="rounded-2xl border border-white/15 bg-slate-800/55 p-3"
+              >
+                <p
+                  class="font-mono text-[11px] uppercase tracking-[0.12em] text-slate-300"
+                >
+                  Feels Like
+                </p>
+                <p class="mt-1 text-2xl font-bold">
+                  {{ weather.feels_like }}&deg;C
+                </p>
+              </article>
+              <article
+                class="rounded-2xl border border-white/15 bg-slate-800/55 p-3"
+              >
+                <p
+                  class="font-mono text-[11px] uppercase tracking-[0.12em] text-slate-300"
+                >
+                  Humidity
+                </p>
+                <p class="mt-1 text-2xl font-bold">{{ weather.humidity }}%</p>
+              </article>
+              <article
+                class="rounded-2xl border border-white/15 bg-slate-800/55 p-3"
+              >
+                <p
+                  class="font-mono text-[11px] uppercase tracking-[0.12em] text-slate-300"
+                >
+                  Wind
+                </p>
+                <p class="mt-1 text-2xl font-bold">
+                  {{ weather.wind }}<span class="text-sm text-slate-300">
+                    km/h</span
+                  >
+                </p>
+              </article>
+              <article
+                class="rounded-2xl border border-white/15 bg-slate-800/55 p-3"
+              >
+                <p
+                  class="font-mono text-[11px] uppercase tracking-[0.12em] text-slate-300"
+                >
+                  Pressure
+                </p>
+                <p class="mt-1 text-2xl font-bold">
+                  {{ weather.pressure }}<span class="text-sm text-slate-300">
+                    hPa</span
+                  >
+                </p>
+              </article>
+              <article
+                class="rounded-2xl border border-white/15 bg-slate-800/55 p-3"
+              >
+                <p
+                  class="font-mono text-[11px] uppercase tracking-[0.12em] text-slate-300"
+                >
+                  Visibility
+                </p>
+                <p class="mt-1 text-2xl font-bold">
+                  {{ weather.visibility }}<span class="text-sm text-slate-300">
+                    km</span
+                  >
+                </p>
+              </article>
+            </div>
+          </div>
+        </section>
+        {% endif %}
+      </section>
+
+      <footer
+        class="mt-6 text-center font-mono text-xs text-slate-300/90 md:mt-8"
+      >
+        &copy; Code with Dubem. 2026 All Rights Reserved.
+      </footer>
+    </main>
+
+    <script>
+      const form = document.querySelector("form");
+      const searchBtn = document.getElementById("searchBtn");
+
+      if (form && searchBtn) {
+        form.addEventListener("submit", () => {
+          searchBtn.textContent = "Fetching...";
+          searchBtn.setAttribute("disabled", "true");
+          searchBtn.classList.add("opacity-70");
+        });
+      }
+    </script>
+  </body>
+</html>
